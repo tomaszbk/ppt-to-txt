@@ -1,0 +1,8 @@
+services:
+  ppt-converter:
+    build: .
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+    environment:
+      - PYTHONUNBUFFERED=1
