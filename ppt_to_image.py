@@ -7,15 +7,16 @@ from pdf2image import convert_from_path
 from PIL.Image import Image
 
 
-def convert_ppt_to_pdf(ppt_path: Path):
+def convert_ppt_to_pdf(ppt_path: Path) -> str:
     """
-    Convert PowerPoint slides to images via PDF intermediate.
-    Returns a list of image file paths.
+    Convierte un archivo PPT/PPTX a PDF y devuelve la ruta al PDF generado.
     """
     output_dir = "./output"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    ppt_filename: str = os.path.basename(ppt_path)
+    ppt_filename = os.path.basename(ppt_path)
+    pdf_name = os.path.splitext(ppt_filename)[0] + ".pdf"
+    pdf_file = os.path.join(output_dir, pdf_name)
 
     print("Converting to PDF...")
     subprocess.run(
@@ -26,13 +27,11 @@ def convert_ppt_to_pdf(ppt_path: Path):
             "pdf",
             "--outdir",
             output_dir,
-            ppt_path,
+            str(ppt_path),
         ],
         check=True,
     )
 
-    pdf_name = ppt_filename.replace(".pptx", "").replace(".ppt", "")
-    pdf_file = os.path.join(output_dir, f"{pdf_name}.pdf")
     print(f"Looking for PDF at: {pdf_file}")
 
     retries = 0
@@ -50,13 +49,10 @@ def convert_ppt_to_pdf(ppt_path: Path):
         )
 
     print(f"PDF conversion completed for {ppt_path}")
-
-    with open(pdf_file, "rb") as f:
-        file = f.read()
-    return file
+    return pdf_file
 
 
-def convert_pdf_to_images(pdf_file) -> list[Image]:
+def convert_pdf_to_images(pdf_file: str) -> list[Image]:
     print(f"Converting PDF {pdf_file} to images...")
     images = convert_from_path(pdf_file, dpi=150)
     print(f"PDF to image conversion complete. Number of images: {len(images)}")
