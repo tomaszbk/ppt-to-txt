@@ -4,10 +4,10 @@ from pydantic_ai.providers.openai import OpenAIProvider
 
 # Configure the AI agent for local LMStudio
 model = OpenAIModel(
-    "google/gemma-3-4b",  # Replace with your actual model name in LMStudio
-    # Default LMStudio API endpoint
+    "gemma:4b",  # Cambia aquí por el nombre del modelo en Ollama
     provider=OpenAIProvider(
-        base_url="http://localhost:1234/v1", api_key="your-api-key"
+        base_url="http://ollama:11434/v1",
+        api_key="ollama"
     ),
 )
 
@@ -22,14 +22,14 @@ slide_agent = Agent(
 )
 
 
-async def analyze_slide(image=None):
+async def analyze_slide(image_path):
     """Use AI to analyze and summarize a single slide"""
 
     prompt = """
     Summarize the content of this slide
     """
 
-    with open("output/example/slide_001.png", "rb") as f:
+    with open(image_path, "rb") as f:
         image_data = f.read()
 
     result = await slide_agent.run(
