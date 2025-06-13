@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy application code
 COPY main.py .
+COPY slide_summary.py .
 
 # Create input and output directories
 RUN mkdir -p /app/input /app/output
