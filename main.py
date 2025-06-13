@@ -1,20 +1,21 @@
 import asyncio
+import io
 import os
 from tempfile import NamedTemporaryFile
-
-import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
-from PIL.Image import Image
+from pathlib import Path
+
+import uvicorn
 
 from ppt_to_image import convert_pdf_to_images, convert_ppt_to_pdf
-from slide_summary import analyze_slide, summarize_presentation
+from slide_summary import analyze_slide
 
 app = FastAPI(title="PPT to Text Converter")
 
 
 @app.post("/convert-ppt/")
-async def convert_ppt_endpoint(file: UploadFile = File(...)):
+async def convert_ppt(file: UploadFile = File(...)):
     """
     FastAPI endpoint to convert PowerPoint files to text summaries.
     """
@@ -24,47 +25,45 @@ async def convert_ppt_endpoint(file: UploadFile = File(...)):
         )
 
     try:
-        # Convert to images
-        temp = NamedTemporaryFile(delete=False)
-        contents = await file.read()
-        with temp as f:
-            f.write(contents)
+        # 1. Guardar el archivo subido temporalmente
+        with NamedTemporaryFile(delete=False, suffix=".pptx") as tmp:
+            tmp.write(await file.read())
+            ppt_path = Path(tmp.name)
 
-        pdf = convert_ppt_to_pdf(temp.name)
+        # 2. Convertir a PDF
+        pdf_path = convert_ppt_to_pdf(ppt_path)
+        if not pdf_path or not os.path.exists(pdf_path):
+            raise HTTPException(status_code=500, detail="No se pudo convertir a PDF")
 
-        images: list[Image] = convert_pdf_to_images(pdf)
-
+        # 3. Convertir PDF a imágenes
+        images = convert_pdf_to_images(pdf_path)
         if not images:
-            raise HTTPException(
-                status_code=500, detail="Failed to convert presentation to images"
-            )
+            raise HTTPException(status_code=500, detail="No se pudo convertir PDF a imágenes")
 
-        # Generate summaries
+        # 4. Resumir cada slide usando el modelo
         summaries = []
-        for i, image in enumerate(images, 1):
-            try:
-                summary = await analyze_slide(image)
-                summaries.append({"slide": i, "summary": summary})
-            except Exception as e:
-                summaries.append({"slide": i, "summary": f"Error: {str(e)}"})
+        for idx, image in enumerate(images, 1):
+            # Convertir la imagen a bytes
+            img_bytes = io.BytesIO()
+            image.save(img_bytes, format="PNG")
+            img_bytes = img_bytes.getvalue()
+            summary = await analyze_slide(img_bytes)
+            summaries.append({"slide": idx, "summary": summary})
 
-        # Generate entire summary of file
-        presentation_summary = summarize_presentation(summaries)
+        # 5. Limpiar archivos temporales
+        os.remove(ppt_path)
+        os.remove(pdf_path)
 
         return JSONResponse(
             content={
                 "filename": file.filename,
                 "total_slides": len(summaries),
                 "summaries": summaries,
-                "presentation_summary": presentation_summary,
             }
         )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
-
-    finally:
-        os.remove(temp.name)
 
 
 @app.get("/")
