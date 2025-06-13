@@ -6,3 +6,25 @@ services:
       - ./output:/app/output
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:0.6.5
+    ports:
+      - "11434:11434"
+    entrypoint: bash -c "ollama serve & pid=$!; sleep 5; ollama pull gemma3:4b; wait $pid"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ollama-data:
