@@ -6,17 +6,3 @@ services:
       - ./output:/app/output
     environment:
       - PYTHONUNBUFFERED=1
-    depends_on:
-      - ollama
-
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    command: >
-      sh -c "ollama pull gemma:4b && ollama serve"
-
-volumes:
-  ollama-data:
