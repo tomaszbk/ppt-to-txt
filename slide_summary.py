@@ -1,6 +1,11 @@
 from pydantic_ai import Agent, BinaryContent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.units import cm
+
 
 # Configure the AI agent for local LMStudio
 model = OpenAIModel(
@@ -66,14 +71,35 @@ async def analyze_slide(image):
 
 
 async def summarize_presentation(slide_summaries, output_path=None):
-    """Summarize the entire presentation based on slide summaries and optionally save to a txt file"""
+    """Genera un resumen de la presentación y lo guarda en un PDF visualmente agradable"""
     result = await text_summary_agent.run(slide_summaries)
     summary_text = result.output
     print("Presentation Summary: ", summary_text)
-    if output_path:
+
+    if output_path and output_path.endswith(".pdf"):
+        # Crear el documento PDF
+        doc = SimpleDocTemplate(output_path, pagesize=A4,
+                                rightMargin=2*cm, leftMargin=2*cm,
+                                topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        story = []
+
+        # Título
+        story.append(Paragraph("Resumen de la Presentación", styles["Title"]))
+        story.append(Spacer(1, 0.5 * cm))
+
+        # Párrafos del resumen
+        for paragraph in summary_text.split("\n\n"):
+            story.append(Paragraph(paragraph.strip(), styles["Normal"]))
+            story.append(Spacer(1, 0.5 * cm))
+
+        doc.build(story)
+        print(f"Resumen global guardado en PDF: {output_path}")
+    elif output_path:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(summary_text)
-        print(f"Resumen global guardado en: {output_path}")
+        print(f"Resumen global guardado como texto en: {output_path}")
+
     return summary_text
 
 

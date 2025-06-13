@@ -53,8 +53,8 @@ async def convert_ppt(file: UploadFile = File(...)):
         all_summaries_text = "\n".join([f"Slide {s['slide']}: {s['summary']}" for s in summaries])
         output_dir = "./output"
         os.makedirs(output_dir, exist_ok=True)
-        output_txt = os.path.join(output_dir, "presentation_summary.txt")
-        final_summary = await summarize_presentation(all_summaries_text, output_path=output_txt)
+        output_pdf = os.path.join(output_dir, "presentation_summary.pdf")
+        final_summary = await summarize_presentation(all_summaries_text, output_path=output_pdf)
 
         # 6. Limpiar archivos temporales
         os.remove(ppt_path)
