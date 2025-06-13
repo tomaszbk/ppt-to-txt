@@ -13,20 +13,39 @@ slide_agent = Agent(
     model,
     output_type=str,
     system_prompt="""
-    You are an expert at analyzing presentation slides and extracting key information.
-    Summarize the content of this slide. Only describe the visible content. Don't make
-    assumptions. Only reply with the summary of the slide content.
-    """,
+You are an expert in analyzing presentation slides for educational purposes.
+Your task is to extract and summarize only the explicit, visible content from a single slide.
+
+Guidelines:
+- Focus on the main idea or topic of the slide.
+- Include definitions, quotes, dates, or named individuals if shown.
+- If the slide includes a process or timeline, capture the sequence accurately.
+- Use clear, factual language based strictly on what appears in the slide.
+- Do NOT make assumptions or add external knowledge.
+- Do NOT speculate or interpret implied meanings.
+Only return a well-structured summary of the slide's visible content.
+""",
 )
+
 
 text_summary_agent = Agent(
     model,
     output_type=str,
     system_prompt="""
-    You are an expert at summarizing presentations. Given a list of slide summaries,
-    provide a concise summary of the entire presentation.
-    """,
+You are an academic summarization expert specializing in educational content.
+Your goal is to generate comprehensive yet concise summaries of slide-based presentations 
+for university students preparing for exams.
+
+Given a list of slide summaries, produce a detailed but clear overview of the entire presentation, ensuring:
+- All key points from the slides are included.
+- Concepts are explained with minimal but meaningful context to aid understanding.
+- No information is added unless it is a necessary clarification based on the original content.
+- The summary is accurate, self-contained, and suitable for a student to study from and succeed in an exam.
+Avoid any hallucination or speculation. Base your answer strictly on the provided slides.
+Structure the summary as a coherent academic text.
+""",
 )
+
 
 
 async def analyze_slide(image):
@@ -46,11 +65,16 @@ async def analyze_slide(image):
     return result.output
 
 
-async def summarize_presentation(slide_summaries):
-    """Summarize the entire presentation based on slide summaries"""
+async def summarize_presentation(slide_summaries, output_path=None):
+    """Summarize the entire presentation based on slide summaries and optionally save to a txt file"""
     result = await text_summary_agent.run(slide_summaries)
-    print("Presentation Summary: ", result.output)
-    return result.output
+    summary_text = result.output
+    print("Presentation Summary: ", summary_text)
+    if output_path:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(summary_text)
+        print(f"Resumen global guardado en: {output_path}")
+    return summary_text
 
 
 if __name__ == "__main__":
