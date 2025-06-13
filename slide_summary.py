@@ -6,9 +6,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 model = OpenAIModel(
     "gemma3:4b",  # Replace with your actual model name in LMStudio
     # Default LMStudio API endpoint
-    provider=OpenAIProvider(
-        base_url="http://ollama:11434/v1", api_key="your-api-key"
-    ),
+    provider=OpenAIProvider(base_url="http://ollama:11434/v1", api_key="your-api-key"),
 )
 
 slide_agent = Agent(
@@ -21,6 +19,15 @@ slide_agent = Agent(
     """,
 )
 
+text_summary_agent = Agent(
+    model,
+    output_type=str,
+    system_prompt="""
+    You are an expert at summarizing presentations. Given a list of slide summaries,
+    provide a concise summary of the entire presentation.
+    """,
+)
+
 
 async def analyze_slide(image):
     """Use AI to analyze and summarize a single slide"""
@@ -29,16 +36,20 @@ async def analyze_slide(image):
     Summarize the content of this slide
     """
 
-    with open(image, "rb") as f:
-        image_data = f.read()
-
     result = await slide_agent.run(
         [
             prompt,
-            BinaryContent(data=image_data, media_type="image/png"),
+            BinaryContent(data=image, media_type="image/png"),
         ]
     )
     print("result: ", result.output)
+    return result.output
+
+
+async def summarize_presentation(slide_summaries):
+    """Summarize the entire presentation based on slide summaries"""
+    result = await text_summary_agent.run(slide_summaries)
+    print("Presentation Summary: ", result.output)
     return result.output
 
 

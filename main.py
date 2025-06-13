@@ -1,65 +1,75 @@
-import os
-import subprocess
-from time import sleep
 import asyncio
-from slide_summary import analyze_slide
-from pdf2image import convert_from_path
+import os
+from tempfile import NamedTemporaryFile
+
+import uvicorn
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
+from PIL.Image import Image
+
+from ppt_to_image import convert_pdf_to_images, convert_ppt_to_pdf
+from slide_summary import analyze_slide, summarize_presentation
+
+app = FastAPI(title="PPT to Text Converter")
 
 
-def convert_ppt_to_images(ppt_file, output_dir="output"):
+@app.post("/convert-ppt/")
+async def convert_ppt_endpoint(file: UploadFile = File(...)):
     """
-    Convert PowerPoint slides to images via PDF intermediate.
-    Returns a list of image file paths.
+    FastAPI endpoint to convert PowerPoint files to text summaries.
     """
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not file.filename.endswith((".ppt", ".pptx")):
+        raise HTTPException(
+            status_code=400, detail="Only PPT and PPTX files are supported"
+        )
 
     try:
-        print(f"Converting {ppt_file} to PDF...")
-        subprocess.run(
-            [
-                "libreoffice",
-                "--headless",
-                "--convert-to",
-                "pdf",
-                "--outdir",
-                output_dir,
-                ppt_file,
-            ],
-            check=True,
-        )
-        print(f"PDF conversion completed for {ppt_file}")
-        sleep(4)
+        # Convert to images
+        temp = NamedTemporaryFile(delete=False)
+        contents = await file.read()
+        with temp as f:
+            f.write(contents)
 
-        ppt_file_name = os.path.basename(ppt_file)
-        pdf_name = ppt_file_name.replace(".pptx", "").replace(".ppt", "")
-        pdf_file = os.path.join(output_dir, pdf_name + ".pdf")
-        print(f"Looking for PDF at: {pdf_file}")
-        if not os.path.exists(pdf_file):
-            print(f"PDF file not found: {pdf_file}")
-            return []
+        pdf = convert_ppt_to_pdf(temp.name)
 
-        print(f"Converting PDF {pdf_file} to images...")
-        images = convert_from_path(pdf_file, dpi=150)
-        print(f"PDF to image conversion complete. Number of images: {len(images)}")
+        images: list[Image] = convert_pdf_to_images(pdf)
 
-        image_paths = []
+        if not images:
+            raise HTTPException(
+                status_code=500, detail="Failed to convert presentation to images"
+            )
+
+        # Generate summaries
+        summaries = []
         for i, image in enumerate(images, 1):
-            image_path = os.path.join(output_dir, f"slide_{i:03d}.png")
-            image.save(image_path, "PNG")
-            print(f"Saved slide {i} as {image_path}")
-            image_paths.append(image_path)
+            try:
+                summary = await analyze_slide(image)
+                summaries.append({"slide": i, "summary": summary})
+            except Exception as e:
+                summaries.append({"slide": i, "summary": f"Error: {str(e)}"})
 
-        if os.path.exists(pdf_file):
-            os.remove(pdf_file)
-            print(f"Deleted intermediate PDF: {pdf_file}")
+        # Generate entire summary of file
+        presentation_summary = summarize_presentation(summaries)
 
-        print(f"Successfully saved {len(image_paths)} slides to {output_dir}")
-        return image_paths
+        return JSONResponse(
+            content={
+                "filename": file.filename,
+                "total_slides": len(summaries),
+                "summaries": summaries,
+                "presentation_summary": presentation_summary,
+            }
+        )
 
     except Exception as e:
-        print(f"Error converting presentation: {e}")
-        return []
+        raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
+
+    finally:
+        os.remove(temp.name)
+
+
+@app.get("/")
+async def root():
+    return {"message": "PPT to Text Converter API"}
 
 
 def summarize_slides(image_paths, output_dir):
@@ -82,31 +92,5 @@ def summarize_slides(image_paths, output_dir):
     print(f"Resumen guardado en {summary_path}")
 
 
-def main():
-    print("Hello from ppt-to-txt!")
-
-    input_dir = "/app/input"
-    output_dir = "/app/output"
-
-    if not os.path.exists(input_dir):
-        print("No input directory found. Please mount your files to /app/input")
-        return
-
-    ppt_files = [f for f in os.listdir(input_dir) if f.endswith((".ppt", ".pptx"))]
-
-    if not ppt_files:
-        print("No PowerPoint files found in input directory")
-        return
-
-    for ppt_file in ppt_files:
-        full_path = os.path.join(input_dir, ppt_file)
-        print(f"Processing: {ppt_file}")
-
-        file_output_dir = os.path.join(output_dir, os.path.splitext(ppt_file)[0])
-        image_paths = convert_ppt_to_images(full_path, file_output_dir)
-        if image_paths:
-            summarize_slides(image_paths, file_output_dir)
-
-
 if __name__ == "__main__":
-    main()
+    uvicorn.run(app, host="0.0.0.0", port=8000)
