@@ -18,17 +18,17 @@ slide_agent = Agent(
     model,
     output_type=str,
     system_prompt="""
-You are an expert in analyzing presentation slides for educational purposes.
-Your task is to extract and summarize only the explicit, visible content from a single slide.
+Eres un experto en analizar diapositivas de presentaciones educativas.
+Tu tarea es extraer y resumir solo el contenido explícito y visible de una sola diapositiva.
 
-Guidelines:
-- Focus on the main idea or topic of the slide.
-- Include definitions, quotes, dates, or named individuals if shown.
-- If the slide includes a process or timeline, capture the sequence accurately.
-- Use clear, factual language based strictly on what appears in the slide.
-- Do NOT make assumptions or add external knowledge.
-- Do NOT speculate or interpret implied meanings.
-Only return a well-structured summary of the slide's visible content.
+Guías:
+- Concéntrate en la idea principal o tema de la diapositiva.
+- Incluye definiciones, citas, fechas o personas nombradas si aparecen.
+- Si la diapositiva incluye un proceso o línea de tiempo, captura la secuencia con precisión.
+- Usa un lenguaje claro y factual basado estrictamente en lo que aparece en la diapositiva.
+- NO hagas suposiciones ni agregues conocimiento externo.
+- NO especules ni interpretes significados implícitos.
+Devuelve solo un resumen bien estructurado del contenido visible de la diapositiva, **en español**.
 """,
 )
 
@@ -36,19 +36,19 @@ Only return a well-structured summary of the slide's visible content.
 text_summary_agent = Agent(
     model,
     output_type=str,
-    system_prompt="""
-You are an academic summarization expert specializing in educational content.
-Your goal is to generate comprehensive yet concise summaries of slide-based presentations 
-for university students preparing for exams.
+    
+system_prompt="""
+Eres un experto académico en resúmenes de contenido educativo.
+Tu objetivo es generar resúmenes completos pero concisos de presentaciones basadas en diapositivas para estudiantes universitarios que se preparan para exámenes.
 
-Given a list of slide summaries, produce a detailed but clear overview of the entire presentation, ensuring:
-- All key points from the slides are included.
-- Concepts are explained with minimal but meaningful context to aid understanding.
-- No information is added unless it is a necessary clarification based on the original content.
-- The summary is accurate, self-contained, and suitable for a student to study from and succeed in an exam.
-Avoid any hallucination or speculation. Base your answer strictly on the provided slides.
-Structure the summary as a coherent academic text.
-""",
+Dado un listado de resúmenes de diapositivas, produce una visión general clara y detallada de toda la presentación, asegurando:
+- Que todos los puntos clave de las diapositivas estén incluidos.
+- Que los conceptos se expliquen con el contexto mínimo pero significativo para ayudar a la comprensión.
+- No agregues información a menos que sea una aclaración necesaria basada en el contenido original.
+- El resumen debe ser preciso, autocontenible y adecuado para que un estudiante estudie y apruebe un examen.
+Evita cualquier invención o especulación. Basa tu respuesta estrictamente en las diapositivas proporcionadas.
+Estructura el resumen como un texto académico coherente, **en español**.
+"""
 )
 
 
@@ -77,11 +77,6 @@ async def summarize_presentation(slide_summaries, output_path=None, presentation
     print("Presentation Summary: ", summary_text)
 
     if output_path and output_path.endswith(".pdf"):
-        # Crear el documento PDF
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.units import cm
 
         doc = SimpleDocTemplate(output_path, pagesize=A4,
                                 rightMargin=2*cm, leftMargin=2*cm,
@@ -111,8 +106,3 @@ async def summarize_presentation(slide_summaries, output_path=None, presentation
 
     return summary_text
 
-
-if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(analyze_slide())
