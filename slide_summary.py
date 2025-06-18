@@ -70,7 +70,7 @@ async def analyze_slide(image):
     return result.output
 
 
-async def summarize_presentation(slide_summaries, output_path=None):
+async def summarize_presentation(slide_summaries, output_path=None, presentation_name=None):
     """Genera un resumen de la presentación y lo guarda en un PDF visualmente agradable"""
     result = await text_summary_agent.run(slide_summaries)
     summary_text = result.output
@@ -78,14 +78,23 @@ async def summarize_presentation(slide_summaries, output_path=None):
 
     if output_path and output_path.endswith(".pdf"):
         # Crear el documento PDF
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.units import cm
+
         doc = SimpleDocTemplate(output_path, pagesize=A4,
                                 rightMargin=2*cm, leftMargin=2*cm,
                                 topMargin=2*cm, bottomMargin=2*cm)
         styles = getSampleStyleSheet()
         story = []
 
-        # Título
-        story.append(Paragraph("Resumen de la Presentación", styles["Title"]))
+        # Título con nombre de la presentación
+        if presentation_name:
+            title = f"Resumen de la Presentación: {presentation_name}"
+        else:
+            title = "Resumen de la Presentación"
+        story.append(Paragraph(title, styles["Title"]))
         story.append(Spacer(1, 0.5 * cm))
 
         # Párrafos del resumen
