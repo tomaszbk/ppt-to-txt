@@ -50,39 +50,16 @@ Convierte presentaciones de PowerPoint (`.ppt`/`.pptx`) en resúmenes de texto y
 4. **Accede a la API:**
 
    - FastAPI corre en [http://localhost:8000](http://localhost:8000)
-   - Documentación interactiva en [http://localhost:8000/docs](http://localhost:8000/docs)
+   - Documentación interactiva y pruebas en [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
 ## Endpoints principales
 
-### `/convert-ppt-ollama/`
+- `/convert-ppt-ollama/`: Convierte y resume usando Ollama/Gemma (modelo local).
+- `/convert-ppt-gemini/`: Convierte y resume usando Gemini (requiere clave de API).
 
-Convierte y resume usando Ollama/Gemma (modelo local).
-
-**Ejemplo con `curl`:**
-
-```sh
-curl -X 'POST' \
-  'http://localhost:8000/convert-ppt-ollama/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@archivo.pptx;type=application/vnd.openxmlformats-officedocument.presentationml.presentation'
-```
-
-### `/convert-ppt-gemini/`
-
-Convierte y resume usando Gemini (requiere clave de API).
-
-**Ejemplo con `curl`:**
-
-```sh
-curl -X 'POST' \
-  'http://localhost:8000/convert-ppt-gemini/' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@archivo.pptx;type=application/vnd.openxmlformats-officedocument.presentationml.presentation'
-```
+Puedes probar ambos endpoints y subir archivos directamente desde la documentación interactiva de FastAPI en `/docs`.
 
 ---
 
