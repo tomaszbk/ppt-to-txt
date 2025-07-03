@@ -39,6 +39,16 @@ Debes seleccionar que modelo utilizar y subir el archivo ppt\pptx que quieras re
 - Los archivos convertidos y resúmenes se guardan en la carpeta `output/`.
 - El modelo de Ollama se descarga automáticamente al iniciar el contenedor.
 - Puedes personalizar los prompts y modelos en el archivo `agents.py`
+- **Si no posees GPU**, comenta la sección de recursos GPU en el archivo `compose.yml`:
+  ```yaml
+  # deploy:
+  #   resources:
+  #     reservations:
+  #       devices:
+  #         - driver: nvidia
+  #           count: 1
+  #           capabilities: [gpu]
+  ```
 
 ---
 
