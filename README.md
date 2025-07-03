@@ -4,14 +4,24 @@ Convierte presentaciones de PowerPoint (`.ppt`/`.pptx`) en resúmenes de texto y
 
 ---
 
-1. **Construye y levanta los servicios:**
+2. **Agregar archivo .env con la variable de entorno**
+
+   Crea un archivo `.env` en la raíz del proyecto y agrega la siguiente línea:
+
+   ```
+   GCP_API_KEY=tu_api_key
+   ```
+
+   Reemplaza `tu_api_key` con tu clave de API de Google Cloud.
+
+3. **Construye y levanta los servicios:**
 
    ```sh
    docker compose build
    docker compose up
    ```
 
-2. **Accede a la API:**
+4. **Accede a la API:**
 
    - FastAPI corre en [http://localhost:8000](http://localhost:8000)
    - Documentación interactiva y pruebas en [http://localhost:8000/docs](http://localhost:8000/docs)
