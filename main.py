@@ -1,5 +1,6 @@
 import io
 import os
+import asyncio
 from enum import Enum
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -57,18 +58,19 @@ async def convert_ppt(AI_model: AIProvider, file: UploadFile = File(...)):
         os.remove(ppt_path)
         os.remove(pdf_path)
 
-        summaries = await get_summaries(images, slide_agent)
-
-        all_summaries_text = "\n".join(
-            [f"Slide {s['slide']}: {s['summary']}" for s in summaries]
-        )
+        summaries = await get_summaries(images, slide_agent, AI_model)
 
         name_without_ext = filename.rsplit(".", 1)[0]
         pdf_filename = f"presentation_summary_{name_without_ext}.pdf"
 
+        # Delay antes del resumen final si es Gemini
+        if AI_model == AIProvider.GEMINI:
+            print("Esperando antes del resumen final (Gemini rate limit)...")
+            await asyncio.sleep(5)
+
         final_summary, pdf_bytes = await summarize_presentation(
             text_summary_agent,
-            all_summaries_text,
+            [s["summary"] for s in summaries],
             presentation_name=filename,
         )
 
@@ -94,14 +96,26 @@ async def convert_ppt(AI_model: AIProvider, file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
 
-async def get_summaries(images, slide_agent):
+async def get_summaries(images, slide_agent, ai_model: AIProvider):
     summaries = []
     for idx, image in enumerate(images, 1):
         img_bytes = io.BytesIO()
         image.save(img_bytes, format="PNG")
         img_bytes = img_bytes.getvalue()
+
+        # Delay para Gemini (excepto en la primera slide)
+        if ai_model == AIProvider.GEMINI and idx > 1:
+            # 60 segundos / 15 requests = 4 segundos por request (con margen de seguridad)
+            delay_seconds = 5
+            print(
+                f"Esperando {delay_seconds} segundos antes de procesar slide {idx} (Gemini rate limit)..."
+            )
+            await asyncio.sleep(delay_seconds)
+
         summary = await analyze_slide(img_bytes, slide_agent)
         summaries.append({"slide": idx, "summary": summary})
+        print(f"Slide {idx} completada")
+
     return summaries
 
 
