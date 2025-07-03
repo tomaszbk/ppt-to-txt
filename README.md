@@ -4,62 +4,23 @@ Convierte presentaciones de PowerPoint (`.ppt`/`.pptx`) en resúmenes de texto y
 
 ---
 
-## Características
-
-- **Carga de archivos PPT/PPTX** vía API REST.
-- **Conversión automática a PDF** usando LibreOffice.
-- **Extracción de imágenes de cada diapositiva**.
-- **Resumen automático de cada diapositiva** usando IA (Ollama/Gemma o Gemini).
-- **Generación de un resumen global** de toda la presentación.
-- **Exportación del resumen global a PDF**.
-- **Contenedores listos para producción** con Docker y Docker Compose.
-
----
-
-## Requisitos
-
-- Docker y Docker Compose instalados.
-- Clave de API de Gemini (opcional, solo si usas el endpoint `/convert-ppt-gemini/`).
-
----
-
-## Instalación y uso rápido
-
-1. **Clona este repositorio:**
-
-   ```sh
-   git clone https://github.com/tu_usuario/ppt-to-txt.git
-   cd ppt-to-txt
-   ```
-
-2. **Configura tus variables de entorno:**
-
-   Crea un archivo `.env` en la raíz del proyecto y agrega tu clave de Gemini si la tienes:
-
-   ```
-   GEMINI_API_KEY=tu_clave_de_gemini
-   ```
-
-3. **Construye y levanta los servicios:**
+1. **Construye y levanta los servicios:**
 
    ```sh
    docker compose build
    docker compose up
    ```
 
-4. **Accede a la API:**
+2. **Accede a la API:**
 
    - FastAPI corre en [http://localhost:8000](http://localhost:8000)
    - Documentación interactiva y pruebas en [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## Endpoints principales
+## Endpoint principal
 
-- `/convert-ppt-ollama/`: Convierte y resume usando Ollama/Gemma (modelo local).
-- `/convert-ppt-gemini/`: Convierte y resume usando Gemini (requiere clave de API).
-
-Puedes probar ambos endpoints y subir archivos directamente desde la documentación interactiva de FastAPI en `/docs`.
+Debes seleccionar que modelo utilizar y subir el archivo ppt\pptx que quieras resumir.
 
 ---
 
@@ -68,7 +29,7 @@ Puedes probar ambos endpoints y subir archivos directamente desde la documentaci
 - `main.py`: API FastAPI principal.
 - `ppt_to_image.py`: Conversión de PPT a PDF y de PDF a imágenes.
 - `slide_summary.py`: Resumen de diapositivas y presentaciones usando Ollama/Gemma.
-- `gemini_summary.py`: Resumen usando Gemini.
+- `agents.py`: Definición de agentes para el resumen de diapositivas y presentaciones.
 - `Dockerfile` y `compose.yml`: Infraestructura de contenedores.
 
 ---
@@ -77,7 +38,7 @@ Puedes probar ambos endpoints y subir archivos directamente desde la documentaci
 
 - Los archivos convertidos y resúmenes se guardan en la carpeta `output/`.
 - El modelo de Ollama se descarga automáticamente al iniciar el contenedor.
-- Puedes personalizar los prompts y modelos en los archivos `slide_summary.py` y `gemini_summary.py`.
+- Puedes personalizar los prompts y modelos en el archivo `agents.py`
 
 ---
 
