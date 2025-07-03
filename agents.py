@@ -25,6 +25,7 @@ Guías:
 - Incluye definiciones, citas, fechas o personas nombradas si aparecen.
 - Si la diapositiva incluye un proceso o línea de tiempo, captura la secuencia con precisión.
 - Usa un lenguaje claro y factual basado estrictamente en lo que aparece en la diapositiva.
+- Ignora secciones decorativas o protocolarias como saludos, despedidas, agradecimientos o invitaciones a preguntas.
 - NO hagas suposiciones ni agregues conocimiento externo.
 - NO especules ni interpretes significados implícitos.
 Devuelve solo un resumen bien estructurado del contenido visible de la diapositiva, **en español**.
@@ -50,6 +51,7 @@ Tu objetivo es generar resúmenes completos pero concisos de presentaciones basa
 Dado un listado de resúmenes de diapositivas, produce una visión general clara y detallada de toda la presentación, asegurando:
 - Que todos los puntos clave de las diapositivas estén incluidos.
 - Que los conceptos se expliquen con el contexto mínimo pero significativo para ayudar a la comprensión.
+- Ignora contenidos no académicos como saludos, despedidas, agradecimientos, invitaciones a preguntas o cualquier sección protocolar sin valor conceptual.
 - No agregues información a menos que sea una aclaración necesaria basada en el contenido original.
 - El resumen debe ser preciso, autocontenible y adecuado para que un estudiante estudie y apruebe un examen.
 Evita cualquier invención o especulación. Basa tu respuesta estrictamente en las diapositivas proporcionadas.
